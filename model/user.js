@@ -8,4 +8,4 @@ const userSchema = new mongoose.Schema({
   token: { type: String },
 });
 
-module.exports = mongoose.model("user", userSchema); //wtedy require
+module.exports = mongoose.model("user", userSchema);

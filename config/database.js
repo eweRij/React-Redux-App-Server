@@ -18,4 +18,3 @@ exports.connect = () => {
       process.exit(1);
     });
 };
-//podłączamy do bazy danych to trzeba do serwera dorzucić
