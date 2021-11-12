@@ -4,12 +4,44 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const User = require("./model/user");
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
+
+//do avatarów
+// const directoryPath = path.join(path.resolve(), "uploads");
+// let dir = [];
+
+// fs.readdir(directoryPath, (err, files) => {
+//   if (err) {
+//     return console.log("Can not scan the directory: " + err);
+//   }
+//   files.forEach((file) => {
+//     dir.push(file);
+//   });
+// });// to sie moze kiedys przydac :)
+
+const maxSize = 2 * 1024 * 1024;
+
+let storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+let uploadFile = multer({
+  storage: storage,
+  limits: { fileSize: maxSize },
+}).single("avatar");
 
 app.post("/register", async (req, res) => {
   try {
@@ -147,6 +179,47 @@ app.delete("/removeTask/:userId/:taskId", async (req, res) => {
     );
     newUser.save();
     res.status(200).json(taskId);
+  } catch (err) {
+    console.log(err);
+  }
+});
+app.patch("/user/:userId/avatar", uploadFile, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const avatar = req.file.originalname;
+    const newUser = await User.findOneAndUpdate(
+      {
+        _id: userId,
+      },
+      {
+        $set: {
+          avatar: avatar,
+        },
+      }
+    );
+    newUser.save();
+    res.send(req.file.originalname);
+  } catch (err) {
+    if (err.code == "LIMIT_FILE_SIZE") {
+      return res.status(500).send({
+        message: "File size cannot be larger than 2MB!",
+      });
+    }
+
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file}. ${err}`,
+    });
+  }
+});
+app.get("/user/:userId/avatar", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findOne({
+      _id: userId,
+    });
+    const avatarName = user.avatar;
+    const avatarPath = `${path.resolve()}/uploads/${avatarName}`;
+    res.status(200).download(avatarPath);
   } catch (err) {
     console.log(err);
   }
