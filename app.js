@@ -5,14 +5,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
 const User = require("./model/user");
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
+app.use("/uploads", express.static("uploads")); //nazwy musza byc takie jak folderu bo chodzi o path
 
 //do avatarów
 // const directoryPath = path.join(path.resolve(), "uploads");
@@ -187,18 +186,20 @@ app.patch("/user/:userId/avatar", uploadFile, async (req, res) => {
   try {
     const { userId } = req.params;
     const avatar = req.file.originalname;
+    const avatarUrl = `${req.protocol}://${req.hostname}:4001/uploads/${avatar}`;
     const newUser = await User.findOneAndUpdate(
       {
         _id: userId,
       },
       {
         $set: {
-          avatar: avatar,
+          avatar: avatarUrl,
         },
       }
     );
+    console.log(avatarUrl);
     newUser.save();
-    res.send(req.file.originalname);
+    res.send(avatarUrl);
   } catch (err) {
     if (err.code == "LIMIT_FILE_SIZE") {
       return res.status(500).send({
@@ -209,19 +210,6 @@ app.patch("/user/:userId/avatar", uploadFile, async (req, res) => {
     res.status(500).send({
       message: `Could not upload the file: ${req.file}. ${err}`,
     });
-  }
-});
-app.get("/user/:userId/avatar", async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const user = await User.findOne({
-      _id: userId,
-    });
-    const avatarName = user.avatar;
-    const avatarPath = `${path.resolve()}/uploads/${avatarName}`;
-    res.status(200).download(avatarPath);
-  } catch (err) {
-    console.log(err);
   }
 });
 
