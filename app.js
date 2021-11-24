@@ -1,18 +1,23 @@
-require("dotenv").config();
-require("./config/database").connect();
+import dotenv from "dotenv";
+dotenv.config();
 
-const nodemailer = require("./nodemailer/nodemailer.js");
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const cors = require("cors");
-const multer = require("multer");
+import { connect } from "./config/database.js";
+connect();
 
-const User = require("./model/user");
+import { sendConfirmationEmail, verifyUser } from "./nodemailer/nodemailer.js";
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import cors from "cors";
+import multer from "multer";
+import User from "./model/user.js";
+import verifyToken from "./middleware/auth.js";
+
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
+// app.use(verifyToken);
 app.use("/uploads", express.static("uploads")); //nazwy musza byc takie jak folderu bo chodzi o path,umozliwia dostep do plikow
 
 //do avatarów
@@ -58,7 +63,7 @@ app.post("/register", async (req, res) => {
       return res.status(409).send("User Already Exist. Please Login");
     }
 
-    encryptedPassword = await bcrypt.hash(password, 10);
+    const encryptedPassword = await bcrypt.hash(password, 10);
     const characters =
       "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let confirmationCode = "";
@@ -83,11 +88,7 @@ app.post("/register", async (req, res) => {
 
     user.token = token;
 
-    nodemailer.sendConfirmationEmail(
-      user.first_name,
-      user.email,
-      user.confirmationCode
-    );
+    sendConfirmationEmail(user.first_name, user.email, user.confirmationCode);
 
     res.status(201).json(user);
   } catch (err) {
@@ -95,7 +96,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.patch("/confirm/:confirmationCode", nodemailer.verifyUser);
+app.patch("/confirm/:confirmationCode", verifyUser);
 
 app.post("/login", async (req, res) => {
   try {
@@ -115,6 +116,7 @@ app.post("/login", async (req, res) => {
         }
       );
       user.token = token;
+      user.save();
 
       if (user.status != "Active") {
         return res.status(401).send({
@@ -169,6 +171,7 @@ app.patch("/getTasks/:taskId", async (req, res) => {
     const taskToChange = user.tasks.find((task) => {
       return task.id === parseInt(taskId);
     });
+    console.log(user.tasks);
     const newUser = await User.findOneAndUpdate(
       {
         _id: user._id,
@@ -247,4 +250,4 @@ app.use("*", (req, res) => {
     },
   });
 });
-module.exports = app;
+export default app;

@@ -1,12 +1,12 @@
-const nodemailer = require("nodemailer");
-require("dotenv").config();
-
-const User = require("../model/user");
+import dotenv from "dotenv";
+dotenv.config();
+import { createTransport } from "nodemailer";
+import User from "../model/user.js";
 
 const user = process.env.USER;
 const pass = process.env.PASS;
 
-const transport = nodemailer.createTransport({
+const transport = createTransport({
   host: "smtp.gmail.com",
   port: 465,
   auth: {
@@ -15,7 +15,7 @@ const transport = nodemailer.createTransport({
   },
 });
 
-module.exports.sendConfirmationEmail = (name, email, confirmationCode) => {
+export const sendConfirmationEmail = (name, email, confirmationCode) => {
   transport
     .sendMail({
       from: user,
@@ -30,7 +30,7 @@ module.exports.sendConfirmationEmail = (name, email, confirmationCode) => {
     .catch((err) => console.log(err));
 };
 
-module.exports.verifyUser = (req, res, next) => {
+export const verifyUser = (req, res, next) => {
   User.findOne({
     confirmationCode: req.params.confirmationCode,
   })

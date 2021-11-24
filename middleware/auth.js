@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 const config = process.env;
 
@@ -8,7 +8,7 @@ const verifyToken = (req, res, next) => {
     req.query.token ||
     req.headers["x-access-token"] ||
     req.headers["Authorization"];
-
+  console.log(req.headers);
   if (!token) {
     return res.status(403).send("A token is required for authentication");
   }
@@ -20,5 +20,4 @@ const verifyToken = (req, res, next) => {
   }
   return next();
 };
-
-module.exports = verifyToken;
+export default verifyToken;
