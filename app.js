@@ -116,6 +116,7 @@ app.post("/login", async (req, res) => {
         }
       );
       user.token = token;
+      console.log(user.token);
       user.save();
 
       if (user.status != "Active") {
@@ -132,7 +133,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/getUser", async (req, res) => {
+app.get("/getUser", verifyToken, async (req, res) => {
   try {
     const { id } = req.body;
     const user = await User.findOne({ id });
@@ -142,7 +143,7 @@ app.get("/getUser", async (req, res) => {
   }
 });
 
-app.post("/addTask", async (req, res) => {
+app.post("/addTask", verifyToken, async (req, res) => {
   try {
     const { id, task } = req.body;
     const user = await User.findOne({ id });
@@ -154,7 +155,7 @@ app.post("/addTask", async (req, res) => {
   }
 });
 
-app.get("/getTasks", async (req, res) => {
+app.get("/getTasks", verifyToken, async (req, res) => {
   try {
     const { id } = req.body;
     const user = await User.findOne({ id });
@@ -164,7 +165,7 @@ app.get("/getTasks", async (req, res) => {
   }
 });
 
-app.patch("/getTasks/:taskId", async (req, res) => {
+app.patch("/getTasks/:taskId", verifyToken, async (req, res) => {
   try {
     const user = req.body;
     const taskId = req.params.taskId;
@@ -191,7 +192,7 @@ app.patch("/getTasks/:taskId", async (req, res) => {
   }
 });
 
-app.delete("/removeTask/:userId/:taskId", async (req, res) => {
+app.delete("/removeTask/:userId/:taskId", verifyToken, async (req, res) => {
   try {
     const { taskId, userId } = req.params;
     const newUser = await User.findOneAndUpdate(
@@ -210,7 +211,7 @@ app.delete("/removeTask/:userId/:taskId", async (req, res) => {
     console.log(err);
   }
 });
-app.patch("/user/:userId/avatar", uploadFile, async (req, res) => {
+app.patch("/user/:userId/avatar", verifyToken, uploadFile, async (req, res) => {
   try {
     const { userId } = req.params;
     const avatar = req.file.originalname;
