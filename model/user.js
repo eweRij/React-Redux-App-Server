@@ -1,19 +1,19 @@
 import mongoose from "mongoose";
-
+const drugSchema = new mongoose.Schema({});
 const userSchema = new mongoose.Schema({
   first_name: { type: String, default: null },
   last_name: { type: String, default: null },
+  login: { type: String, default: null },
   email: { type: String, unique: true },
   password: { type: String },
-  token: { type: String },
   avatar: { type: String },
-  tasks: [
+  drugs: [
     {
-      id: { type: Number },
-      category: { type: String },
-      description: { type: String },
-      importance: { type: String },
-      done: { type: Boolean },
+      drug_name: { type: String },
+      frequency: { type: Number },
+      amount: { type: Number },
+      when: { type: Number },
+      additionalInfo: { type: String },
     },
   ],
   status: {
@@ -27,4 +27,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("user", userSchema);
+export default mongoose.model("users", userSchema);

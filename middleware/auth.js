@@ -1,22 +1,21 @@
 import jwt from "jsonwebtoken";
-
+//token + cookies
 const config = process.env;
-
+//middleware for token verify
 const verifyToken = (req, res, next) => {
-  const token =
-    // req.body.token ||
-    // req.query.token ||
-    // req.headers["x-access-token"] ||
-    req.headers["authorization"].split(" ")[1];
+  const token = req.cookies.token;
+  console.log(token);
   if (!token) {
     return res.status(403).send("A token is required for authentication");
   }
   try {
-    const decoded = jwt.verify(token, config.TOKEN_KEY); //verify zwraca to co jest zgodne z tokenem podanym w zapytaniu, jesli taki istnieje, w tym przypakdu konkretnego usera
+    const decoded = jwt.verify(token, config.TOKEN_KEY);
+
     req.user = decoded;
-  } catch (err) {
+
+    return next();
+  } catch {
     return res.status(401).send("Invalid Token");
   }
-  return next();
 };
 export default verifyToken;
