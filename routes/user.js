@@ -16,19 +16,19 @@ router.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 router.use(cookieParser());
 const maxSize = 2 * 1024 * 1024;
 
-// let storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "./uploads/");
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, file.originalname);
-//   },
-// });//do ładowania avatara
+let storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+}); //do ładowania avatara
 
-// let uploadFile = multer({
-//   storage: storage,
-//   limits: { fileSize: maxSize },
-// }).single("avatar");//tez
+let uploadFile = multer({
+  storage: storage,
+  limits: { fileSize: maxSize },
+}).single("avatar"); //tez
 
 router.post("/register", async (req, res) => {
   try {
@@ -88,11 +88,11 @@ router.post("/login", async (req, res) => {
         { user_id: user._id, login }, //to pozniej w verify mozna wykorzystac!!
         process.env.TOKEN_KEY,
         {
-          expiresIn: 60,
+          expiresIn: 600,
         }
       );
 
-      res.cookie("token", token, { maxAge: 60000, httpOnly: true });
+      res.cookie("token", token, { maxAge: 600000, httpOnly: true });
 
       if (user.status != "Active") {
         return res.status(401).send({
@@ -119,32 +119,54 @@ router.get("/getUser/:id", verifyToken, async (req, res) => {
   }
 });
 
-// router.patch("/:userId/avatar", verifyToken, uploadFile, async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-//     const avatar = req.file.originalname;
-//     const avatarUrl = `${req.protocol}://${req.hostname}:4001/uploads/${avatar}`;
-//     const newUser = await User.findOneAndUpdate(
-//       {
-//         _id: userId,
-//       },
-//       {
-//         $set: {
-//           avatar: avatarUrl,
-//         },
-//       }
-//     );
-//     newUser.save();
-//     res.send(avatarUrl);
-//   } catch (err) {
-//     if (err.code == "LIMIT_FILE_SIZE") {
-//       return res.status(500).send({
-//         message: "File size cannot be larger than 2MB!",
-//       });
-//     }
+router.patch("/:id/avatar", verifyToken, uploadFile, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const avatar = req.file.originalname;
+    const avatarUrl = `${req.protocol}://${req.hostname}:4001/uploads/${avatar}`;
+    const newUser = await User.findOneAndUpdate(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          avatar: avatarUrl,
+        },
+      }
+    );
+    newUser.save();
+    res.send(avatarUrl);
+  } catch (err) {
+    if (err.code == "LIMIT_FILE_SIZE") {
+      return res.status(401).send({
+        message: "File size cannot be larger than 2MB!",
+      });
+    }
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file}. ${err}`,
+    });
+  }
+});
 
-//     res.status(500).send({
-//       message: `Could not upload the file: ${req.file}. ${err}`,
-//     });
-//   }
-// });
+router.patch("/:id/editUserNames", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { first_name, last_name } = req.body;
+    const newUser = await User.findOneAndUpdate(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          first_name: first_name,
+          last_name: last_name,
+        },
+      }
+    );
+    console.log(newUser);
+    newUser.save();
+    res.status(200).send(newUser);
+  } catch (err) {
+    console.log(err);
+  }
+});

@@ -33,11 +33,13 @@ export const sendConfirmationEmail = (name, email, confirmationCode) => {
 
 export const verifyUser = (req, res, next) => {
   //spr czy nadany confirmation code zgadza sie z tym ze sciezki i zmienia na status active
+  console.log("sprawdzam path i usera");
   User.findOne({
     confirmationCode: req.params.confirmationCode,
   })
     .then((user) => {
       if (!user) {
+        console.log("nie ma usera");
         return res.status(404).send({ message: "User Not found." });
       }
 
@@ -45,11 +47,12 @@ export const verifyUser = (req, res, next) => {
       console.log("status zmieniony");
       user.save((err) => {
         if (err) {
+          console.log("nie udało sie zapisać ");
           res.status(500).send({ message: err });
           return;
         }
       });
     })
-    .catch((e) => console.log("error", e));
+    .catch((e) => console.log("error ze znalezieniem confirmation code ", e));
   next();
 };
