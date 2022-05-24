@@ -163,7 +163,28 @@ router.patch("/:id/editUserNames", verifyToken, async (req, res) => {
         },
       }
     );
-    console.log(newUser);
+    newUser.save();
+    res.status(200).send(newUser);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.patch("/:id/editEmail", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+
+    const newUser = await User.findOneAndUpdate(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          email: email,
+        },
+      }
+    );
     newUser.save();
     res.status(200).send(newUser);
   } catch (err) {
