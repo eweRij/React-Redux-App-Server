@@ -17,7 +17,7 @@ const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
-// app.use(verifyToken);
+app.use(verifyToken);
 app.use("/uploads", express.static("uploads")); //nazwy musza byc takie jak folderu bo chodzi o path,umozliwia dostep do plikow
 
 //do avatarów
@@ -88,7 +88,7 @@ app.post("/register", async (req, res) => {
 
     user.token = token;
 
-    sendConfirmationEmail(user.first_name, user.email, user.confirmationCode);
+    // sendConfirmationEmail(user.first_name, user.email, user.confirmationCode);
 
     res.status(201).json(user);
   } catch (err) {
@@ -96,7 +96,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.patch("/confirm/:confirmationCode", verifyUser);
+// app.patch("/confirm/:confirmationCode", verifyUser);
 
 app.post("/login", async (req, res) => {
   try {
@@ -118,11 +118,11 @@ app.post("/login", async (req, res) => {
       user.token = token;
       user.save();
 
-      if (user.status != "Active") {
-        return res.status(401).send({
-          message: "Pending Account. Please Verify Your Email!",
-        });
-      }
+      // if (user.status != "Active") {
+      //   return res.status(401).send({
+      //     message: "Pending Account. Please Verify Your Email!",
+      //   });
+      // }
       res.status(200).json(user);
     } else {
       res.status(409).send("Invalid Credentials");
