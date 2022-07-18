@@ -4,20 +4,20 @@ dotenv.config();
 import { connect } from "./config/database.js";
 connect();
 
-import { sendConfirmationEmail, verifyUser } from "./nodemailer/nodemailer.js";
+// import { sendConfirmationEmail, verifyUser } from "./nodemailer/nodemailer.js";
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import multer from "multer";
 import User from "./model/user.js";
-import verifyToken from "./middleware/auth.js";
+// import verifyToken from "./middleware/auth.js";
 
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
-app.use(verifyToken);
+// app.use(verifyToken);
 app.use("/uploads", express.static("uploads")); //nazwy musza byc takie jak folderu bo chodzi o path,umozliwia dostep do plikow
 
 //do avatarów
